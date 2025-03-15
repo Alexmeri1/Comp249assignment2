@@ -2,60 +2,108 @@
 // Written by: Alexander Meriakri #40310155
 
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import Deductions.TaxCalculator;
+
+import javax.xml.transform.stream.StreamSource;
+import java.io.*;
 import java.util.Scanner;
 
 public class Main {
+    static int  totalLinesRead = 0;
+    static int totalToErrorFile = 0;
 
     public static void main(String[] args) {
+
+
         Employee[] employees = null;
         PayRollFileProcessing fileManager = new PayRollFileProcessing();
 
+
         try {
-            Scanner reader = new Scanner(new FileInputStream(" payroll.txt"));
+
+            Scanner reader = new Scanner(new FileInputStream("payroll.txt"));
+            System.out.println("Opening file payroll...\n");
 
             while (reader.hasNextLine()) {
 
                 String line = reader.nextLine();
                 Employee employee = null;
+                boolean isException = false;
                 try {
+                    totalLinesRead++;
                     employee = fileManager.parseLine(line);
-                } catch (NumberFormatException nfe) {
-                    fileManager.writeToErrorFile(line);
-                    throw new NumberFormatException("One of the fields had an invalid character!");
-                } catch (MinimumWageException mwe) {
-                    fileManager.writeToErrorFile(line);
-                    throw new MinimumWageException();
-                } catch (Exception e) {
-                    fileManager.writeToErrorFile(line);
-                    throw new RuntimeException("Something unexpected happened");
-                }finally {
                     employees = addEmployeeToArray(employee, employees);
+
                 }
-
-
-            }
-            if (employees != null) {
-                for (Employee e : employees) {
-                    System.out.println(e.getGrossIncome());
-                    System.out.println(e.getEmployeeTotalDeduction());
-                    System.out.println(e.getEmployeeNetSalary());
-
+                //If has an exception print, put it in error file
+                catch (NumberFormatException nfe) {
+                    //System.out.println("One of the fields had an invalid character!");
+                    fileManager.writeToErrorFile(line);
+                    totalToErrorFile++;
+                } catch (IllegalArgumentException e) {
+                    //System.out.println(e.getMessage());
+                    fileManager.writeToErrorFile(line);
+                    totalToErrorFile++;
+                } catch (MinimumWageException mwe) {
+                    //System.out.println(mwe);
+                    fileManager.writeToErrorFile(line);
+                    totalToErrorFile++;
+                }  catch(Exception e) {
+                    //System.out.println("Something unexpected happened" + e.getMessage());
+                    fileManager.writeToErrorFile(line);
+                    totalToErrorFile++;
                 }
             }
 
         } catch (FileNotFoundException e) {
 
-            throw new RuntimeException(e);
+            throw new RuntimeException("File not found");
 
         }
 
+        if(totalToErrorFile != 0 ){
+            System.out.println("Error lines found in file payroll");
+        }
+        readAndDisplayFile("payrollError.txt");
+
+        System.out.println(totalLinesRead + " lines read from payroll file");
+        System.out.println(totalToErrorFile + " lines written to error file");
+        System.out.println("Calculating deductions");
+        if (employees != null) {
+
+            fileManager.writeToReportFile(employees);
+
+        }
+
+        readAndDisplayFile("payrollReport.txt");
+
+        TaxCalculator tc = new TaxCalculator();
+        System.out.println(tc.getTotalDeduction(52000));
+
     }
 
-    public static Employee[] addEmployeeToArray(Employee e, Employee[] arr) {
+    private static void readAndDisplayFile(String fileName){
+
+        try (Scanner reader = new Scanner(new FileInputStream(fileName))){
+            String line = null;
+            while( reader.hasNextLine() ){
+                line = reader.nextLine();
+                System.out.println(line);
+            }
+
+
+        }catch(FileNotFoundException e){
+            System.out.println("File not found");
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+
+    }
+
+    private static Employee[] addEmployeeToArray(Employee e, Employee[] arr) {
         Employee[] newArr;
-        if(e ==null){
+        if (e == null) {
             System.out.println("Employee null");
             return arr;
         }
@@ -72,5 +120,7 @@ public class Main {
         newArr[arr.length] = e;
         return newArr;
     }
+
+
 
 }
