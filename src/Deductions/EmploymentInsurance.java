@@ -2,6 +2,7 @@ package Deductions;
 
 public class EmploymentInsurance extends Deduction {
 
+
     @Override
     public double calculateTax(double grossIncome) {
         if (grossIncome >= 65700) {

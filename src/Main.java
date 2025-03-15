@@ -1,23 +1,22 @@
 // Assignment 2
 // Written by: Alexander Meriakri #40310155
-
-
-import Deductions.TaxCalculator;
-
-import javax.xml.transform.stream.StreamSource;
+//This is the main class where everything plays out
 import java.io.*;
 import java.util.Scanner;
 
 public class Main {
-    static int  totalLinesRead = 0;
+    static int totalLinesRead = 0;
     static int totalToErrorFile = 0;
 
     public static void main(String[] args) {
 
-
+        //Initialize the array
         Employee[] employees = null;
+
+        //Create a file Manager
         PayRollFileProcessing fileManager = new PayRollFileProcessing();
 
+        System.out.println("Welcome to Alex's payroll calculator");
 
         try {
 
@@ -26,15 +25,20 @@ public class Main {
 
             while (reader.hasNextLine()) {
 
+                //read a line
                 String line = reader.nextLine();
                 Employee employee = null;
-                boolean isException = false;
                 try {
+
                     totalLinesRead++;
+                    //try to get an employee from the line read
                     employee = fileManager.parseLine(line);
+
+                    //If successfully read the line and created an employee, add him to the array
                     employees = addEmployeeToArray(employee, employees);
 
                 }
+
                 //If has an exception print, put it in error file
                 catch (NumberFormatException nfe) {
                     //System.out.println("One of the fields had an invalid character!");
@@ -53,32 +57,38 @@ public class Main {
                     fileManager.writeToErrorFile(line);
                     totalToErrorFile++;
                 }
-            }
 
+            }
+            //Close reader at the end
+            reader.close();
         } catch (FileNotFoundException e) {
 
             throw new RuntimeException("File not found");
 
         }
 
+        //If the file had errors
         if(totalToErrorFile != 0 ){
             System.out.println("Error lines found in file payroll");
         }
+
         readAndDisplayFile("payrollError.txt");
 
         System.out.println(totalLinesRead + " lines read from payroll file");
         System.out.println(totalToErrorFile + " lines written to error file");
-        System.out.println("Calculating deductions");
-        if (employees != null) {
 
+        //Check if there are employees
+        if (employees != null) {
+            System.out.println("Calculating deductions");
+            //Write all the employees to the report file
             fileManager.writeToReportFile(employees);
 
+            readAndDisplayFile("payrollReport.txt");
+        }else{
+            System.out.println("No employees were found");
         }
 
-        readAndDisplayFile("payrollReport.txt");
-
-        TaxCalculator tc = new TaxCalculator();
-        System.out.println(tc.getTotalDeduction(52000));
+        System.out.println("Thank you for using the app");
 
     }
 
@@ -86,6 +96,8 @@ public class Main {
 
         try (Scanner reader = new Scanner(new FileInputStream(fileName))){
             String line = null;
+
+            //For every line in the text line read it and display the line
             while( reader.hasNextLine() ){
                 line = reader.nextLine();
                 System.out.println(line);

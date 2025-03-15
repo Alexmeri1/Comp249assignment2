@@ -3,6 +3,7 @@ package Deductions;
 public class FederalIncomeTax extends Deduction {
     @Override
     public double calculateTax(double grossIncome) {
+
         double tax = 0.0;
         double temp = 0.0;
 
